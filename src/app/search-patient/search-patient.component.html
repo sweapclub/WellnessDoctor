@@ -1,0 +1,47 @@
+<md-card>
+  <p class="title">Search Patient </p>
+  <form (ngSubmit)="doSearch(form)" #form="ngForm" autocomplete="off" autocomplete="off">
+    <md-form-field>
+      <input mdInput name="inpHN" id="inpHN" placeholder="HN Patient" ngModel maxlength="12">
+    </md-form-field>
+
+    <md-form-field>
+      <input mdInput name="dtpStart" [max]="maxDate" [mdDatepicker]="dtpStart" placeholder="Choose a Start Date" readonly (click)="dtpStart.open()"
+        onkeydown="return false" (dateChange)="onDtpStartChange($event)" [(ngModel)]="minDate" required>
+      <md-datepicker-toggle mdSuffix [for]="dtpStart"></md-datepicker-toggle>
+      <md-datepicker touchUi="true" #dtpStart></md-datepicker>
+    </md-form-field>
+
+    <md-form-field>
+      <input mdInput name="dtpEnd" [min]="minDate" [mdDatepicker]="dtpEnd" placeholder="Choose a End Date" readonly (click)="dtpEnd.open()"
+        onkeydown="return false" (dateChange)="onDtpEndChange($event)" [(ngModel)]="maxDate" required>
+      <md-datepicker-toggle mdSuffix [for]="dtpEnd"></md-datepicker-toggle>
+      <md-datepicker touchUi="true" #dtpEnd></md-datepicker>
+    </md-form-field>
+    <button *ngIf="!quering" md-raised-button color="primary" type="submit" name="btnSubmit"> Search ! </button>
+  </form>
+  <p>Total : {{amountPatient}} Checkup</p>
+  <table>
+    <tr>
+      <th style="display:none;">GUID</th>
+      <th>HN</th>
+      <th>Patient Name</th>
+      <th>Age</th>
+      <th>Gender</th>
+      <th>Check-up Date</th>
+      <th>Add Lab</th>
+    </tr>
+    <tr *ngFor="let patient of patients">
+      <td style="display:none;">{{patient.PatientGUID}}</td>
+      <td>{{patient.HN}}</td>
+      <td>{{patient.FullName}}</td>
+      <td>{{patient.Age}}</td>
+      <td>{{patient.Sex}}</td>
+      <td>{{showDate(patient.DOE)}}</td>
+      <td><button md-raised-button>Add Lab Result</button></td>
+    </tr>
+  </table>
+  <br>
+  <md-spinner *ngIf="quering" style="margin:0 auto;"></md-spinner>
+
+</md-card>
