@@ -55,6 +55,7 @@ export class AppComponent {
         this.cookieLogin = Cookie.getAll();
         console.log(this.cookieLogin);
       }
+      objForm.reset();
     });
 
     // Cookie.set('LoginName', objForm.value.inpUserName, 1);

@@ -15,7 +15,11 @@ import {
   MdGridListModule,
   MdDatepickerModule,
   MdNativeDateModule,
-  MdProgressSpinnerModule
+  MdProgressSpinnerModule,
+  MdSidenavModule,
+  MdRadioModule,
+  MdSelectModule,
+  MdListModule
 } from '@angular/material';
 
 // Router
@@ -29,12 +33,18 @@ import { AppService } from './app-service.service';
 
 // Component
 import { AppComponent } from './app.component';
-import { SearchPatientComponent } from './search-patient/search-patient.component';
+import {
+  SearchPatientComponent,
+  DialogSettingComponent,
+  DialogLabComponent
+ } from './search-patient/search-patient.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    SearchPatientComponent
+    SearchPatientComponent,
+    DialogSettingComponent,
+    DialogLabComponent
   ],
   imports: [
     BrowserModule,
@@ -50,7 +60,15 @@ import { SearchPatientComponent } from './search-patient/search-patient.componen
     MdGridListModule,
     MdDatepickerModule,
     MdNativeDateModule,
-    MdProgressSpinnerModule
+    MdProgressSpinnerModule,
+    MdSidenavModule,
+    MdRadioModule,
+    MdSelectModule,
+    MdListModule
+  ],
+  entryComponents: [
+    DialogSettingComponent,
+    DialogLabComponent
   ],
   providers: [DbService, AppService],
   bootstrap: [AppComponent]

@@ -1,0 +1,31 @@
+<section class="mat-typography">
+    <h1 md-dialog-title>Setting other comment</h1>
+
+    <div md-dialog-content class="mainDialog">
+
+      <form (ngSubmit)="addOtherComment(form)" #form="ngForm" autocomplete="off">
+        <!-- <p class="title"> add other lab comment </p> -->
+        <button md-raised-button type="submit" style="float: right; padding-top:5px; padding-bottom:5px;" color="primary"> <md-icon>note_add</md-icon> Add </button>
+        <div style="overflow: hidden; padding-right: .5em;">
+          <!-- <md-select placeholder="Other Comment" name="otherComment" style="width:100%;" ngModel>
+            <md-option *ngFor="let comment of otherLabComment" [value]="comment">
+              {{comment.comText}} <span>&nbsp;&nbsp;</span>
+            </md-option>
+          </md-select> -->
+          <md-input-container style="width:100%;">
+              <input name="otherComment" mdInput placeholder="add other comment" ngModel>
+            </md-input-container>
+        </div>
+      </form>
+
+      <md-list>
+        <!-- <md-list-item>{{normalLabSelected?.comText}}</md-list-item> -->
+        <md-list-item *ngFor="let comment of otherLabComment">{{comment.comText}}</md-list-item>
+      </md-list>
+    </div>
+    <br>
+    <div md-dialog-actions>
+      <button md-raised-button (click)="onNoClick()" >Add</button>
+      <button md-raised-button color="warn" (click)="onNoClick()" tabindex="-1">Cancel</button>
+    </div>
+    </section>
