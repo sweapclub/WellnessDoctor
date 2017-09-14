@@ -27,12 +27,9 @@ export class AppComponent {
 
 
   checkLoginStatus(): boolean {
-    // console.log(this.cookieLogin.FullName);
     if (this.cookieLogin.FullName) {
-      // console.log('check true');
       return true;
     }
-    // console.log('check false');
     return false;
   }
 

@@ -1,7 +1,6 @@
 <md-card>
   <p class="title" >Search Patient </p>
   <button class="leftBtn" md-raised-button color="accent" (click)="openSettingDialog()"> <md-icon>settings</md-icon> Config EKG Result </button>
-
     <form (ngSubmit)="doSearch(form)" #form="ngForm" autocomplete="off">
       <md-form-field>
         <input mdInput name="inpHN" id="inpHN" placeholder="HN Patient" ngModel maxlength="12">
@@ -26,22 +25,24 @@
     <p>Total : {{amountPatient}} Persons.</p>
     <table>
       <tr>
-        <!-- <th style="display:none;">GUID</th> -->
         <th>HN</th>
         <th>Patient Name</th>
         <th>Age</th>
         <th>Gender</th>
         <th>Check-up Date</th>
-        <th>Add EKG Result<th>
+        <th>Status</th>
+        <th>Add EKG Result</th>
       </tr>
       <tr *ngFor="let patient of patients">
-        <!-- <td style="display:none;">{{patient.PatientGUID}}</td> -->
         <td>{{patient.HN}}</td>
         <td>{{patient.FullName}}</td>
         <td>{{patient.Age}}</td>
         <td>{{patient.Sex}}</td>
-        <td>{{showDate(patient.DOE)}}</td>
+        <td>{{patient.DOE | date: 'yyyy-MM-dd'}}</td>
+        <td *ngIf="patient.statusFlg == true" style="color:green"><md-icon>check</md-icon> ลงผลแล้ว</td>
+        <td *ngIf="patient.statusFlg == false" style="color:red"><md-icon>close</md-icon> ยังไม่มีการลงผล</td>
         <td><button md-raised-button (click)="openLabDialog(patient)">Add EKG Result</button></td>
+
       </tr>
     </table>
     <br>

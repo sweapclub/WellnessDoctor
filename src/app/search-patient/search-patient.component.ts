@@ -1,22 +1,29 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
+import {DatePipe} from '@angular/common';
+
 import { DbService } from '../db-service.service';
 import { AppService } from '../app-service.service';
 
 // Model
 import { PatientInterface } from '../interface/patientInterface';
-import { LabComment } from '../interface/labComment.interface';
+// import { LabComment } from '../interface/labComment.interface';
+import { EkgComment } from '../interface/ekgComment.interface';
 
 // Dialog
 import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 
+// ng2-cookie
+import { Cookie } from 'ng2-cookies';
 
 @Component({
   selector: 'app-search-patient',
   templateUrl: './search-patient.component.html',
-  styleUrls: ['./search-patient.component.css']
+  styleUrls: ['./search-patient.component.css'],
+  providers: [DatePipe]
 })
+
 export class SearchPatientComponent implements OnInit {
   maxDate = new Date();
   minDate = new Date();
@@ -25,10 +32,13 @@ export class SearchPatientComponent implements OnInit {
   quering: Boolean = false;
   subscription;
 
+  url: String;
+
   constructor(
     private dbService: DbService,
     private appService: AppService,
-    public dialog: MdDialog
+    public dialog: MdDialog,
+    private datepipe: DatePipe
   ) {
 
   }
@@ -44,7 +54,7 @@ export class SearchPatientComponent implements OnInit {
   }
 
 
-  doSearch(objForm) {
+  doSearch(objForm: any) {
     if (objForm.invalid) {
       return;
     }
@@ -55,17 +65,44 @@ export class SearchPatientComponent implements OnInit {
     // prepare data
     const hn = objForm.value.inpHN;
     let dt: Date = new Date(objForm.value.dtpStart);
-    // tslint:disable-next-line:max-line-length
-    const dtpStart: String = `${dt.getFullYear().toString()}-${this.appService.padZero(dt.getMonth(), 2)}-${this.appService.padZero(dt.getDate(), 2)} 00:00:00`;
+    const dtpStart: String = this.datepipe.transform(dt, 'yyyy-MM-dd');
     dt = new Date(objForm.value.dtpEnd);
-    // tslint:disable-next-line:max-line-length
-    const dtpEnd: String = `${dt.getFullYear().toString()}-${this.appService.padZero(dt.getMonth(), 2)}-${this.appService.padZero(dt.getDate(), 2)} 23:59:59`;
+    const dtpEnd: String = this.datepipe.transform(dt, 'yyyy-MM-dd');
 
     // set URL for express
-    const url: String = `${hn}/${dtpStart}/${dtpEnd}`;
+    this.url = `${hn}/${dtpStart}/${dtpEnd}`;
 
+    this.refreshTable();
+  }
+
+  setQueryStatus(flg: boolean) {
+    this.quering = flg;
+  }
+
+  openSettingDialog(obj): void {
+    const dialogRef = this.dialog.open(DialogSettingComponent, {
+      width: '750px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.refreshTable();
+    });
+  }
+
+  openLabDialog(obj): void {
+    const dialogRef = this.dialog.open(DialogLabComponent, {
+      width: '800px',
+      data: { PatientGUID: obj.PatientGUID }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.refreshTable();
+    });
+  }
+
+  private refreshTable() {
     // Send !
-    this.subscription = this.dbService.getSearchPatient(url).subscribe((data) => {
+    this.subscription = this.dbService.getSearchPatient(this.url).subscribe((data) => {
       if (data.length !== 0) {
         this.patients = data;
         this.amountPatient = data.length;
@@ -73,133 +110,151 @@ export class SearchPatientComponent implements OnInit {
       this.setQueryStatus(false);
     });
   }
-
-  setQueryStatus(flg: boolean) {
-    this.quering = flg;
-  }
-
-  showDate(date): String {
-    return this.appService.showDate(date);
-  }
-
-  openSettingDialog(obj): void {
-    const dialogRef = this.dialog.open(DialogSettingComponent, {
-      width: '550px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-    });
-  }
-
-  openLabDialog(): void {
-    const dialogRef = this.dialog.open(DialogLabComponent, {
-      width: '800px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-    });
-  }
-
 }
+
+////////////////////////////////////////////////////////////
 
 @Component({
   selector: 'app-dialog-setting',
-  // template: `<p> Hello </p>`,
   templateUrl: './dialog/dialog-setting.component.html',
   styleUrls: ['./search-patient.component.css']
 })
 export class DialogSettingComponent {
-  otherLabComment = [
-    { comID: 'C01', comText: 'มีค่าที่ต้องเฝ้าระวัง และกรุณาพบแพทย์' },
-    { comID: 'C02', comText: 'มีค่าที่ต้องเฝ้าระวัง และติดตามอาการในอีกสองสัปดาห์' },
-    { comID: 'C03', comText: 'ความตรวจสอบกับนักรังสีวิทยาทันที' }
-  ];
+  subscription;
+  otherLabComment: EkgComment[];
+
+  UID = Cookie.get('UID');
 
   constructor(
     public dialogRef: MdDialogRef<SearchPatientComponent>,
-    @Inject(MD_DIALOG_DATA) public data: any) { }
+    @Inject(MD_DIALOG_DATA) public data: any,
+    public dbService: DbService) {
+
+    this.refreshComment();
+
+  }
 
   onNoClick(): void {
     this.dialogRef.close();
   }
 
   addOtherComment(objForm) {
-    console.log(objForm.value.otherComment);
     if (!objForm.value.otherComment) {
       return;
     }
 
     const pos = this.otherLabComment.findIndex((char) => {
-      return char.comID === objForm.value.otherComment.comID;
+      return char.ListName === objForm.value.otherComment.comID;
     });
 
     if (pos !== -1) {
       return;
     }
 
-    const newComment = {
-      comID: 'Gen New !',
-      comText: objForm.value.otherComment
+    const objComment = {
+      ListName: objForm.value.otherComment,
+      DoctorOwner: Cookie.get('UID')
     };
 
-    this.otherLabComment.push(newComment);
+    this.subscription = this.dbService.postAddEKGComment(objComment).subscribe(() => {
+      this.refreshComment();
+    });
+
     objForm.reset();
   }
 
+  deleteOtherComment(objComment: EkgComment) {
+    const objDel = {
+      RowID: objComment.RowID,
+      DoctorOwner: objComment.DoctorOwner
+    };
+    this.subscription = this.dbService.postDeleteEKGComment(objDel).subscribe(() => {
+      this.refreshComment();
+    });
+  }
+
+  refreshComment(): void {
+    this.subscription = this.dbService.getEkgComment(Cookie.get('UID')).subscribe((result) => {
+      this.otherLabComment = result;
+    });
+  }
 }
+
+
+////////////////////////////////////////////////////////////////
 
 @Component({
   selector: 'app-lab-setting',
-  // template: `<p> Hello </p>`,
   templateUrl: './dialog/dialog-lab.component.html',
   styleUrls: ['./search-patient.component.css']
 })
 export class DialogLabComponent {
-  otherLabComment = [
-    { comID: 'C01', comText: 'มีค่าที่ต้องเฝ้าระวัง และกรุณาพบแพทย์' },
-    { comID: 'C02', comText: 'มีค่าที่ต้องเฝ้าระวัง และติดตามอาการในอีกสองสัปดาห์' },
-    { comID: 'C03', comText: 'ความตรวจสอบกับนักรังสีวิทยาทันที' }
-  ];
+  otherLabComment: EkgComment[];
 
   normalLabComment = [
-    { comID: 'N01', caption: 'ปกติ', comText: 'ค่าแปลผล ปกติ' },
-    { comID: 'N02', caption: 'กราฟไฟฟ้าต่างจากคนทั่วไปเล็กน้อย', comText: 'ค่าแปลผล กราฟไฟฟ้าต่างจากคนทั่วไปเล็กน้อย' },
-    { comID: 'N03', caption: 'ผิดปกติ', comText: 'ค่าแปลผล ผิดปกติ' },
-    { comID: 'N04', caption: 'ผิดปกติ พบแพทย์ทันที', comText: 'ค่าแปลผล ผิดปกติ พบแพทย์ทันที' },
+    { comID: '0', caption: 'ปกติ', comText: 'ค่าแปลผล ปกติ' },
+    { comID: '1', caption: 'กราฟไฟฟ้าต่างจากคนทั่วไปเล็กน้อย', comText: 'ค่าแปลผล กราฟไฟฟ้าต่างจากคนทั่วไปเล็กน้อย' },
+    { comID: '2', caption: 'ผิดปกติ', comText: 'ค่าแปลผล ผิดปกติ' },
+    { comID: '3', caption: 'ผิดปกติ พบแพทย์ทันที', comText: 'ค่าแปลผล ผิดปกติ พบแพทย์ทันที' },
   ];
 
-  normalLabSelected: LabComment;
+  normalLabSelected;
 
-  comments: LabComment[] = [];
-  labAutoComment: LabComment;
+  comments: String = '';
+  subscription;
 
   constructor(
     public dialogRef: MdDialogRef<SearchPatientComponent>,
-    @Inject(MD_DIALOG_DATA) public data: any
-  ) { }
+    @Inject(MD_DIALOG_DATA) public data: any,
+    public dbService: DbService
+  ) {
+    this.subscription = this.dbService.getEkgComment(Cookie.get('UID')).subscribe((result) => {
+      this.otherLabComment = result;
+      this.subscription = this.dbService.getHistoryResult(this.data.PatientGUID).subscribe((resultHistory) => {
+        if (resultHistory.length !== 0) {
+
+          this.comments = resultHistory[0].HEEKGInfoTH;
+          const tmpComment = this.normalLabComment.filter((otherComment: any) => {
+            return (otherComment.comID.indexOf(resultHistory[0].HEEKG) > -1);
+          });
+
+          if (tmpComment.length !== 0) {
+            this.normalLabSelected = tmpComment[0];
+          }
+        }
+      });
+    });
+  }
 
   onNoClick(): void {
     this.dialogRef.close();
   }
 
-  addOtherComment(objForm) {
+  onSaveComment(): void {
 
-    if (!objForm.value.otherComment) {
-      return;
-    }
+    const objResult = {
+      patientGUID: this.data.PatientGUID,
+      HEEKG: this.normalLabSelected.comID,
+      HEEKGInfoTH: this.comments
+    };
 
-    const pos = this.comments.findIndex((char) => {
-      return char.comID === objForm.value.otherComment.comID;
+    this.subscription = this.dbService.postSaveResult(objResult).subscribe(() => {
+      this.dialogRef.close();
     });
 
-    if (pos !== -1) {
-      return;
-    }
-
-    this.comments.push(objForm.value.otherComment);
-    objForm.reset();
   }
 
+  onRadioResultClick(result) {
+    this.normalLabSelected = result;
+  }
+
+  addOtherComment(comment) {
+    // new !
+    if (this.comments) {
+      this.comments += '\n';
+    }
+
+    this.comments += comment;
+
+  }
 }

@@ -1,34 +1,43 @@
 <section class="mat-typography">
-<h1 md-dialog-title>Add EKG Result</h1>
+  <h1 md-dialog-title>Add EKG Result</h1>
 
-<div md-dialog-content class="mainDialog">
-  <md-radio-group layout="padding" [(ngModel)]="normalLabSelected">
-    <md-radio-button  *ngFor="let normalResult of normalLabComment" [value]="normalResult">
-      {{normalResult.caption}} </md-radio-button>
-  </md-radio-group>
+  <div md-dialog-content class="mainDialog">
 
-  <hr>
-  <form (ngSubmit)="addOtherComment(form)" #form="ngForm">
-    <p class="title"> add other EKG comment </p>
-    <button md-raised-button type="submit" style="float: right; padding-top:5px; padding-bottom:5px;" color="primary"> <md-icon>note_add</md-icon> Add </button>
+    <md-radio-group layout="padding" [(ngModel)]="normalLabSelected">
+      <md-radio-button *ngFor="let normalResult of normalLabComment" [value]="normalResult"
+        (click)="onRadioResultClick(normalResult)">
+        {{normalResult.caption}} <span>&nbsp;&nbsp;</span></md-radio-button>
+    </md-radio-group>
+
+    <hr>
+    <div style="float: right; padding-top:5px;  margin-top:0px; width:35%;">
+      <table style="table-layout: fixed; width: 100%">
+        <tr>
+          <th>Other Comment Pattern</th>
+        </tr>
+        <tr *ngFor="let comment of otherLabComment">
+          <td (click)="addOtherComment(comment.ListName)" style="word-wrap: break-word">{{comment.ListName}}</td>
+        </tr>
+      </table>
+    </div>
 
     <div style="overflow: hidden; padding-right: .5em;">
-      <md-select placeholder="Other Comment" name="otherComment" style="width:100%;" ngModel>
-        <md-option *ngFor="let comment of otherLabComment" [value]="comment">
-          {{comment.comText}} <span>&nbsp;&nbsp;</span>
-        </md-option>
-      </md-select>
+      <md-chip-list>
+        <md-chip color="primary" selected="true">Auto EKG Result</md-chip>
+        <md-chip style="background-color:transparent;">{{normalLabSelected?.comText}}</md-chip>
+      </md-chip-list>
+      <p>
+        <span>Other comments</span>
+        <md-form-field style="width:100%;">
+          <textarea mdInput rows="15" maxlength="500" style="height:45vh;" #ta [(ngModel)]="comments"> </textarea>
+          <md-hint align="end">{{comments.length}} / 500</md-hint>
+        </md-form-field>
+      </p>
     </div>
-  </form>
-
-  <md-list>
-    <md-list-item>{{normalLabSelected?.comText}}</md-list-item>
-    <md-list-item *ngFor="let comment of comments">{{comment.comText}}</md-list-item>
-  </md-list>
-</div>
-<br>
-<div md-dialog-actions>
-  <button md-raised-button (click)="onNoClick()" >Add</button>
-  <button md-raised-button color="warn" (click)="onNoClick()" tabindex="-1">Cancel</button>
-</div>
+  </div>
+  <br>
+  <div md-dialog-actions>
+    <button md-raised-button [disabled]="!normalLabSelected" color="primary" (click)="onSaveComment()">Add</button>
+    <button md-raised-button color="warn" (click)="onNoClick()" tabindex="-1">Cancel</button>
+  </div>
 </section>

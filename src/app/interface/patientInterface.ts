@@ -5,6 +5,7 @@ export class PatientInterface {
     public FullName: String,
     public Age: String,
     public DOE: String,
-    public Sex: String
+    public Sex: String,
+    public statusFlg: boolean
   ) { }
 }

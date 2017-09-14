@@ -2,13 +2,7 @@ import { Injectable } from '@angular/core';
 
 @Injectable()
 export class AppService {
-
-  showDate(dateValue: String): String {
-    if (dateValue.length < 10) {
-      return null;
-    }
-    return dateValue.substring(0, 10);
-  }
+  doctorID: String;
 
   padZero(num, size): string {
     let s = num + '';

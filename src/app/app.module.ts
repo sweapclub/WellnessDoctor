@@ -3,7 +3,6 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
-
 // Material
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -19,7 +18,8 @@ import {
   MdSidenavModule,
   MdRadioModule,
   MdSelectModule,
-  MdListModule
+  MdListModule,
+  MdChipsModule
 } from '@angular/material';
 
 // Router
@@ -64,7 +64,8 @@ import {
     MdSidenavModule,
     MdRadioModule,
     MdSelectModule,
-    MdListModule
+    MdListModule,
+    MdChipsModule
   ],
   entryComponents: [
     DialogSettingComponent,
