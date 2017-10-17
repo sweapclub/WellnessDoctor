@@ -3,7 +3,7 @@ var Connection = require('tedious').Connection;
 var config = {
   userName: 'reports',
   password: 'reports',
-  server: '10.121.13.41'
+  server: 'SETTING BY UR SELF !'
 }
 
 var Connection = new Connection(config);
